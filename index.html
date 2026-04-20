@@ -1,0 +1,1254 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Automation Workflow Designer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap');
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --ink:#1F1A17;--bg:#FFF7E8;--surface:#FFFDF8;
+    --yellow:#FFC233;--blue:#4C8DFF;--red:#FF5A5F;
+    --green:#68C27A;--beige:#EEDFC7;--orange:#FF8C42;
+    --font-comic:'Bangers',cursive;
+    --font-body:'Nunito',sans-serif;
+    --font-mono:'Space Mono',monospace;
+    --border:2.5px solid var(--ink);
+    --shadow:4px 4px 0 var(--ink);
+    --shadow-sm:2px 2px 0 var(--ink);
+  }
+  body{font-family:var(--font-body);background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden}
+
+  /* HALFTONE TEXTURE */
+  .halftone{background-image:radial-gradient(circle,rgba(31,26,23,0.06) 1px,transparent 1px);background-size:12px 12px}
+
+  /* COMIC PANELS */
+  .panel{background:var(--surface);border:var(--border);border-radius:12px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .panel-yellow{background:var(--yellow)}
+  .panel-blue{background:#E8F0FF}
+  .panel-green{background:#E8F7EC}
+  .panel-red{background:#FFE8E8}
+
+  /* COMIC FONT HEADINGS */
+  h1,h2,.comic-title{font-family:var(--font-comic);letter-spacing:1px}
+  h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.1}
+  h2{font-size:clamp(1.4rem,3vw,2rem)}
+
+  /* BADGE */
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border:2px solid var(--ink);border-radius:20px;font-size:11px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;box-shadow:var(--shadow-sm)}
+  .badge-yellow{background:var(--yellow)}
+  .badge-blue{background:var(--blue);color:white}
+  .badge-red{background:var(--red);color:white}
+  .badge-green{background:var(--green)}
+  .badge-gray{background:var(--beige)}
+
+  /* CALLOUT BUBBLE */
+  .callout{background:white;border:2px solid var(--ink);border-radius:12px;padding:8px 14px;font-size:12px;font-weight:700;position:relative;box-shadow:var(--shadow-sm)}
+  .callout::after{content:'';position:absolute;bottom:-10px;left:16px;width:0;height:0;border-left:8px solid transparent;border-right:4px solid transparent;border-top:10px solid var(--ink)}
+  .callout-yellow{background:var(--yellow)}
+
+  /* BUTTONS */
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border:var(--border);border-radius:8px;font-family:var(--font-body);font-weight:800;font-size:13px;cursor:pointer;transition:all 0.12s;box-shadow:var(--shadow);background:var(--surface);color:var(--ink)}
+  .btn:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--ink)}
+  .btn:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+  .btn-yellow{background:var(--yellow)}
+  .btn-blue{background:var(--blue);color:white}
+  .btn-red{background:var(--red);color:white}
+  .btn-green{background:var(--green)}
+  .btn-sm{padding:6px 12px;font-size:11px;box-shadow:var(--shadow-sm)}
+
+  /* FORM ELEMENTS */
+  input,textarea,select{font-family:var(--font-body);border:2px solid var(--ink);border-radius:8px;padding:8px 12px;font-size:13px;background:white;color:var(--ink);width:100%;outline:none;transition:all 0.1s}
+  input:focus,textarea:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(76,141,255,0.2)}
+  label{font-size:12px;font-weight:800;letter-spacing:0.3px;display:block;margin-bottom:4px;text-transform:uppercase}
+  .form-group{margin-bottom:14px}
+  textarea{resize:vertical;min-height:60px}
+
+  /* LAYOUT */
+  .app-container{display:grid;grid-template-columns:1fr;min-height:100vh}
+  .main-layout{display:grid;grid-template-columns:340px 1fr 300px;gap:0;height:calc(100vh - 60px);overflow:hidden}
+
+  /* HERO */
+  #hero{padding:clamp(1rem,3vw,2.5rem);position:relative}
+  .hero-inner{max-width:1200px;margin:0 auto}
+  .type-card{border:var(--border);border-radius:10px;padding:12px;background:white;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.15s}
+  .type-card:hover{transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--ink)}
+  .type-card.active-card{transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--ink)}
+
+  /* SIDEBAR */
+  .sidebar{border-right:var(--border);overflow-y:auto;background:var(--surface)}
+  .sidebar-section{padding:14px;border-bottom:2px solid var(--beige)}
+
+  /* CANVAS AREA */
+  .canvas-area{position:relative;overflow:hidden;background:var(--bg)}
+  .canvas-area .halftone{position:absolute;inset:0;pointer-events:none;opacity:0.5}
+
+  /* NODE PANEL */
+  .node-panel{border-left:var(--border);overflow-y:auto;background:var(--surface)}
+
+  /* WORKFLOW NODES */
+  .workflow-svg{width:100%;height:100%}
+  .wf-node{cursor:pointer;transition:all 0.15s}
+  .wf-node:hover .node-rect{filter:drop-shadow(3px 3px 0 rgba(31,26,23,0.5))}
+  .wf-node.selected .node-rect{stroke-width:3.5}
+
+  /* SCORE BAR */
+  .score-bar{height:10px;background:var(--beige);border:2px solid var(--ink);border-radius:20px;overflow:hidden;margin-top:4px}
+  .score-fill{height:100%;border-radius:20px;transition:width 0.5s ease}
+
+  /* TABS */
+  .tab-bar{display:flex;border-bottom:2px solid var(--ink);background:var(--surface)}
+  .tab{padding:10px 16px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;cursor:pointer;border:none;background:none;color:var(--ink);border-bottom:3px solid transparent;margin-bottom:-2px;transition:all 0.1s}
+  .tab.active{border-bottom-color:var(--yellow);background:var(--yellow)}
+  .tab:hover{background:var(--beige)}
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar{width:6px;height:6px}
+  ::-webkit-scrollbar-track{background:var(--beige)}
+  ::-webkit-scrollbar-thumb{background:var(--ink);border-radius:3px}
+
+  /* TOP NAV */
+  .topnav{height:60px;background:var(--ink);display:flex;align-items:center;padding:0 20px;gap:16px;border-bottom:3px solid var(--yellow)}
+  .topnav-title{font-family:var(--font-comic);font-size:1.3rem;color:var(--yellow);letter-spacing:1px}
+  .topnav-sub{font-size:11px;color:rgba(255,255,255,0.6);font-weight:600}
+
+  /* NODE TYPE COLORS */
+  .node-rule{fill:#E8F7EC;stroke:#1F1A17}
+  .node-ai{fill:#E8F0FF;stroke:#1F1A17}
+  .node-human{fill:#FFF7E8;stroke:#1F1A17}
+  .node-guard{fill:#FFE8E8;stroke:#1F1A17}
+  .node-trigger{fill:#FFC233;stroke:#1F1A17}
+
+  /* ANIMATIONS */
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .fade-in{animation:fadeIn 0.3s ease forwards}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.6}}
+  .pulse{animation:pulse 2s infinite}
+
+  /* EXAMPLE PILL */
+  .example-pill{display:inline-block;padding:5px 12px;border:2px solid var(--ink);border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;background:white;margin:3px;transition:all 0.1s;box-shadow:var(--shadow-sm)}
+  .example-pill:hover{background:var(--yellow);transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--ink)}
+
+  /* RISK INDICATOR */
+  .risk-dot{width:10px;height:10px;border-radius:50%;border:2px solid var(--ink);display:inline-block}
+
+  /* EMPTY STATE */
+  .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;opacity:0.6;padding:40px}
+  .empty-icon{font-size:3rem;font-family:var(--font-comic)}
+
+  .section-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:rgba(31,26,23,0.5);margin-bottom:8px}
+
+  /* EXPORT AREA */
+  .export-box{background:var(--ink);color:white;border-radius:8px;padding:12px;font-family:var(--font-mono);font-size:10px;white-space:pre-wrap;max-height:200px;overflow-y:auto;line-height:1.5}
+
+  /* TOGGLE SWITCH */
+  .toggle-group{display:flex;border:2px solid var(--ink);border-radius:8px;overflow:hidden}
+  .toggle-opt{flex:1;padding:5px 8px;text-align:center;font-size:10px;font-weight:800;cursor:pointer;border-right:2px solid var(--ink);transition:all 0.1s;text-transform:uppercase;letter-spacing:0.3px}
+  .toggle-opt:last-child{border-right:none}
+  .toggle-opt.active{background:var(--blue);color:white}
+  .toggle-opt:hover:not(.active){background:var(--beige)}
+
+  /* DRAG handle */
+  .node-wrap{position:absolute;cursor:grab;user-select:none}
+  .node-wrap:active{cursor:grabbing}
+
+  /* MINI RULE */
+  .mini-rule{border:none;border-top:2px dashed rgba(31,26,23,0.2);margin:10px 0}
+
+  .highlight-box{background:var(--yellow);border:var(--border);border-radius:8px;padding:10px 14px;font-weight:700;font-size:12px;box-shadow:var(--shadow-sm)}
+
+  /* RESPONSIVE */
+  @media(max-width:900px){
+    .main-layout{grid-template-columns:1fr;grid-template-rows:auto 60vh auto}
+    .sidebar,.node-panel{border:none;border-bottom:var(--border)}
+    .topnav-sub{display:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div>
+    <div class="topnav-title">⚡ AI AUTOMATION DESIGNER</div>
+    <div class="topnav-sub">Automate with rules first. Add AI where interpretation creates bottlenecks.</div>
+  </div>
+  <div style="flex:1"></div>
+  <button class="btn btn-yellow btn-sm" id="btn-export-md">↓ Export MD</button>
+  <button class="btn btn-sm" style="color:white;border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.1)" id="btn-reset">✕ Reset</button>
+</nav>
+
+<!-- HERO (shown before assessment) -->
+<div id="hero-section" class="halftone" style="padding:24px;display:block">
+  <div style="max-width:900px;margin:0 auto">
+    <div style="display:flex;align-items:flex-start;gap:24px;flex-wrap:wrap;margin-bottom:24px">
+      <div style="flex:1;min-width:280px">
+        <div class="badge badge-yellow" style="margin-bottom:12px">Issue #001 — Workflow Intelligence</div>
+        <h1 style="margin-bottom:10px">NOT EVERY<br>PROBLEM<br>NEEDS AI.</h1>
+        <p style="font-size:14px;max-width:420px;line-height:1.6;font-weight:600;margin-bottom:16px">Design smarter automation by first asking: <em>do you actually need AI?</em> This tool helps you classify your workflow and generate an interactive visual design.</p>
+        <div class="highlight-box" style="max-width:440px">
+          "Automate with rules first. Add AI where interpretation creates bottlenecks. Add agency only where autonomy creates clear value."
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start">
+        <!-- 3 Type Cards -->
+        <div class="type-card" style="width:170px">
+          <div class="badge badge-green" style="margin-bottom:8px;font-size:9px">Level 1</div>
+          <div style="font-family:var(--font-comic);font-size:1.1rem;margin-bottom:6px">Rules-Based</div>
+          <p style="font-size:11px;line-height:1.5;color:rgba(31,26,23,0.7)">Structured, repetitive, deterministic. If-then logic. Fast, predictable, no AI needed.</p>
+          <div style="margin-top:8px;font-size:10px;font-weight:700;color:#3B6D11">✓ Low cost &nbsp;✓ Auditable</div>
+        </div>
+        <div class="type-card" style="width:170px">
+          <div class="badge badge-blue" style="margin-bottom:8px;font-size:9px">Level 2</div>
+          <div style="font-family:var(--font-comic);font-size:1.1rem;margin-bottom:6px">AI-Assisted</div>
+          <p style="font-size:11px;line-height:1.5;color:rgba(31,26,23,0.7)">Ambiguous inputs, interpretation needed. AI recommends, humans decide on critical steps.</p>
+          <div style="margin-top:8px;font-size:10px;font-weight:700;color:#185FA5">✓ Flexible &nbsp;✓ Human-in-loop</div>
+        </div>
+        <div class="type-card" style="width:170px">
+          <div class="badge badge-red" style="margin-bottom:8px;font-size:9px">Level 3</div>
+          <div style="font-family:var(--font-comic);font-size:1.1rem;margin-bottom:6px">Agentic</div>
+          <p style="font-size:11px;line-height:1.5;color:rgba(31,26,23,0.7)">Dynamic decisions, multi-step autonomy with guardrails. Use only when autonomy creates clear value.</p>
+          <div style="margin-top:8px;font-size:10px;font-weight:700;color:#A32D2D">⚠ High risk &nbsp;⚠ Audit required</div>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center">
+      <button class="btn btn-yellow" id="btn-start" style="font-size:16px;padding:14px 32px">
+        ⚡ START DESIGNING YOUR WORKFLOW
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP (3-column) -->
+<div id="main-app" class="main-layout" style="display:none">
+
+  <!-- LEFT: INTAKE + ASSESSMENT -->
+  <div class="sidebar" id="left-sidebar">
+    <div class="tab-bar">
+      <button class="tab active" data-tab="intake">📋 Intake</button>
+      <button class="tab" data-tab="assess">🎯 Assessment</button>
+      <button class="tab" data-tab="examples">📦 Examples</button>
+    </div>
+
+    <!-- INTAKE TAB -->
+    <div id="tab-intake" class="sidebar-section" style="padding:16px">
+      <div class="section-label">Describe your workflow situation</div>
+
+      <div class="form-group">
+        <label>Workflow Name</label>
+        <input type="text" id="f-name" placeholder="e.g. Invoice Processing" />
+      </div>
+      <div class="form-group">
+        <label>What is happening today?</label>
+        <textarea id="f-today" placeholder="Describe the current manual/automated process..." rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Trigger / Input</label>
+        <input type="text" id="f-trigger" placeholder="e.g. Email received, form submitted" />
+      </div>
+      <div class="form-group">
+        <label>Is the input structured?</label>
+        <select id="f-structured">
+          <option value="3">Fully structured (forms, databases, APIs)</option>
+          <option value="2">Mostly structured with some variation</option>
+          <option value="1">Mixed — structured + unstructured</option>
+          <option value="0">Mostly unstructured (emails, docs, voice)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Process Clarity</label>
+        <select id="f-clarity">
+          <option value="3">Crystal clear — exact rules exist</option>
+          <option value="2">Clear most of the time</option>
+          <option value="1">Some ambiguity / judgment calls</option>
+          <option value="0">High ambiguity — depends on context</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Exception Frequency</label>
+        <select id="f-exceptions">
+          <option value="3">Rare (&lt;5%)</option>
+          <option value="2">Occasional (5-20%)</option>
+          <option value="1">Common (20-40%)</option>
+          <option value="0">Very frequent (&gt;40%)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Risk if Wrong</label>
+        <select id="f-risk">
+          <option value="0">Critical — financial, legal, safety</option>
+          <option value="1">High — significant business impact</option>
+          <option value="2">Medium — recoverable error</option>
+          <option value="3">Low — easily corrected</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Decision Complexity</label>
+        <select id="f-complexity">
+          <option value="3">Simple — binary or rule-lookup</option>
+          <option value="2">Moderate — some conditions</option>
+          <option value="1">Complex — multiple variables</option>
+          <option value="0">Very complex — expert judgment</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Human Review Currently Required?</label>
+        <select id="f-human">
+          <option value="0">Always — every case reviewed</option>
+          <option value="1">Often — most cases</option>
+          <option value="2">Sometimes — edge cases only</option>
+          <option value="3">Rarely — mainly for exceptions</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Autonomy Value</label>
+        <select id="f-autonomy">
+          <option value="0">High — fully autonomous actions needed</option>
+          <option value="1">Medium — some autonomous steps useful</option>
+          <option value="2">Low — prefer human confirmation</option>
+          <option value="3">None — no autonomous action wanted</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Systems Involved</label>
+        <input type="text" id="f-systems" placeholder="e.g. Salesforce, email, ERP, Slack" />
+      </div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="btn btn-yellow" id="btn-analyze" style="flex:1">⚡ Analyze & Design</button>
+      </div>
+    </div>
+
+    <!-- ASSESS TAB (hidden until analyzed) -->
+    <div id="tab-assess" style="display:none;padding:16px">
+      <div id="assess-content"></div>
+    </div>
+
+    <!-- EXAMPLES TAB -->
+    <div id="tab-examples" style="display:none;padding:16px">
+      <div class="section-label">Load a built-in example</div>
+      <div id="examples-list"></div>
+    </div>
+  </div>
+
+  <!-- CENTER: CANVAS -->
+  <div class="canvas-area" id="canvas-area">
+    <div class="halftone"></div>
+    <div id="canvas-empty" class="empty-state">
+      <div class="empty-icon">🗺</div>
+      <div style="font-family:var(--font-comic);font-size:1.4rem;text-align:center">YOUR WORKFLOW<br>CANVAS AWAITS</div>
+      <p style="font-size:12px;text-align:center;max-width:220px;font-weight:600">Fill in the intake form and click "Analyze & Design" to generate your interactive workflow.</p>
+      <button class="btn btn-yellow" onclick="document.getElementById('btn-analyze').click()">⚡ Quick Start</button>
+    </div>
+    <div id="canvas-main" style="display:none;position:relative;width:100%;height:100%;overflow:hidden">
+      <div id="canvas-controls" style="position:absolute;top:12px;right:12px;z-index:10;display:flex;gap:6px">
+        <button class="btn btn-sm" id="btn-regen">↺ Regenerate</button>
+        <button class="btn btn-sm btn-green" id="btn-export-json">{ } JSON</button>
+      </div>
+      <svg id="workflow-svg" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible">
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#1F1A17"/>
+          </marker>
+          <marker id="arrowhead-red" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#FF5A5F"/>
+          </marker>
+        </defs>
+        <g id="edges-group"></g>
+        <g id="nodes-group"></g>
+      </svg>
+    </div>
+  </div>
+
+  <!-- RIGHT: NODE INSPECTOR / SUMMARY -->
+  <div class="node-panel" id="right-panel">
+    <div class="tab-bar">
+      <button class="tab active" data-tab="inspector">🔍 Inspector</button>
+      <button class="tab" data-tab="summary">📊 Summary</button>
+    </div>
+    <div id="tab-inspector" style="padding:16px">
+      <div class="empty-state" style="height:auto;padding:40px 20px">
+        <div style="font-size:2rem">👆</div>
+        <p style="font-size:12px;text-align:center;font-weight:600">Click any workflow node to inspect and edit it.</p>
+      </div>
+    </div>
+    <div id="tab-summary" style="display:none;padding:16px">
+      <div id="summary-content">
+        <div class="empty-state" style="height:auto;padding:30px 20px">
+          <p style="font-size:12px;text-align:center;font-weight:600">Run analysis to see recommendation summary.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA & TYPES
+// ============================================================
+const EXAMPLES = [
+  {
+    id:'support',label:'Customer Support Triage',
+    emoji:'🎧',
+    data:{
+      name:'Customer Support Triage',
+      today:'Support emails arrive from multiple channels. Agents manually read, categorize, and route to appropriate teams. High volume causes delays.',
+      trigger:'Customer email / chat received',
+      structured:'1',clarity:'1',exceptions:'1',risk:'2',complexity:'1',human:'1',autonomy:'1',
+      systems:'Email, Zendesk, Slack, CRM'
+    }
+  },
+  {
+    id:'invoice',label:'Invoice Processing',
+    emoji:'📄',
+    data:{
+      name:'Invoice Processing',
+      today:'Finance team manually receives invoices via email, extracts data, matches to POs, and approves for payment.',
+      trigger:'Invoice email or PDF upload',
+      structured:'1',clarity:'2',exceptions:'1',risk:'1',complexity:'2',human:'1',autonomy:'1',
+      systems:'Email, SAP, ERP, DocuSign'
+    }
+  },
+  {
+    id:'onboarding',label:'Employee Onboarding',
+    emoji:'👤',
+    data:{
+      name:'Employee Onboarding Requests',
+      today:'HR receives new hire requests via email. Manually creates accounts, orders equipment, sends welcome docs, schedules orientation.',
+      trigger:'Signed offer letter received',
+      structured:'2',clarity:'2',exceptions:'2',risk:'2',complexity:'2',human:'2',autonomy:'1',
+      systems:'HRIS, Active Directory, Slack, IT ticketing'
+    }
+  },
+  {
+    id:'leads',label:'Lead Qualification',
+    emoji:'🎯',
+    data:{
+      name:'Lead Qualification',
+      today:'Sales team manually reviews inbound leads, checks firmographic data, scores them, and assigns to reps.',
+      trigger:'Form submission or inbound inquiry',
+      structured:'1',clarity:'1',exceptions:'2',risk:'2',complexity:'1',human:'2',autonomy:'1',
+      systems:'Salesforce, HubSpot, LinkedIn, email'
+    }
+  },
+  {
+    id:'helpdesk',label:'IT Helpdesk Routing',
+    emoji:'💻',
+    data:{
+      name:'IT Helpdesk Routing',
+      today:'IT tickets arrive via Slack and email. Team triages, assigns priority, routes to correct team (network, hardware, software).',
+      trigger:'Ticket submitted via Slack or portal',
+      structured:'2',clarity:'2',exceptions:'2',risk:'2',complexity:'2',human:'2',autonomy:'2',
+      systems:'JIRA, Slack, Active Directory, monitoring tools'
+    }
+  },
+  {
+    id:'moderation',label:'Content Moderation',
+    emoji:'🛡',
+    data:{
+      name:'Content Moderation Review',
+      today:'User-submitted content flagged by basic keyword filters is manually reviewed by moderators before publishing.',
+      trigger:'Content submission or automated flag',
+      structured:'0',clarity:'0',exceptions:'1',risk:'1',complexity:'0',human:'0',autonomy:'1',
+      systems:'Content platform, moderation queue, reporting tools'
+    }
+  }
+];
+
+// ============================================================
+// SCORING ENGINE
+// ============================================================
+function scoreWorkflow(data){
+  const s = parseInt(data.structured||2);
+  const c = parseInt(data.clarity||2);
+  const e = parseInt(data.exceptions||2);
+  const r = parseInt(data.risk||1);
+  const d = parseInt(data.complexity||1);
+  const h = parseInt(data.human||1);
+  const a = parseInt(data.autonomy||2);
+
+  // Raw scores 0-3 (3=most rules-friendly, 0=most AI/agentic-needing)
+  const dims = [
+    {name:'Input Structure',score:s,max:3},
+    {name:'Process Clarity',score:c,max:3},
+    {name:'Exception Handling',score:e,max:3},
+    {name:'Risk Level',score:r,max:3},
+    {name:'Decision Complexity',score:d,max:3},
+    {name:'Human Review Need',score:h,max:3},
+    {name:'Autonomy Value',score:a,max:3}
+  ];
+
+  const total = dims.reduce((sum,d)=>sum+d.score,0);
+  const maxTotal = dims.reduce((sum,d)=>sum+d.max,0);
+  const pct = total/maxTotal;
+
+  // Risk penalty: if risk=0 (critical), always push toward more human oversight
+  const riskPenalty = (parseInt(data.risk||1) === 0) ? 0.15 : 0;
+
+  let type,confidence,label,color;
+  if(pct >= 0.72){
+    type='rules';label='Rules-Based Automation';color='#68C27A';
+    confidence = Math.min(95,Math.round(pct*100));
+  } else if(pct >= 0.45){
+    type='ai';label='AI-Assisted Automation';color='#4C8DFF';
+    confidence = Math.round(60 + (pct - 0.45)*100);
+  } else {
+    type='agentic';label='Agentic Automation';color='#FF5A5F';
+    confidence = Math.round(55 + (0.45-pct)*80);
+  }
+
+  if(riskPenalty > 0 && type==='agentic') confidence = Math.max(40,confidence-15);
+
+  return {type,label,color,confidence,dims,total,maxTotal,pct,riskPenalty};
+}
+
+// ============================================================
+// WORKFLOW GENERATION
+// ============================================================
+const STAGE_COLORS = {
+  trigger:{fill:'#FFC233',stroke:'#1F1A17',label:'TRIGGER'},
+  observe:{fill:'#E8F7EC',stroke:'#1F1A17',label:'OBSERVE'},
+  interpret:{fill:'#E8F0FF',stroke:'#1F1A17',label:'INTERPRET'},
+  decide:{fill:'#FFF7E8',stroke:'#1F1A17',label:'DECIDE'},
+  act:{fill:'#E8F0FF',stroke:'#1F1A17',label:'ACT'},
+  verify:{fill:'#E8F7EC',stroke:'#1F1A17',label:'VERIFY'},
+  escalate:{fill:'#FFE8E8',stroke:'#FF5A5F',label:'ESCALATE'}
+};
+
+const NODE_TYPE_LABELS = {rule:'RULE',ai:'AI',human:'HUMAN',guard:'GUARD'};
+const NODE_TYPE_COLORS = {rule:'#E8F7EC',ai:'#E8F0FF',human:'#FFC233',guard:'#FFE8E8'};
+
+function generateNodes(assessment, formData){
+  const {type} = assessment;
+  const name = formData.name || 'Workflow';
+  const trigger = formData.trigger || 'Incoming request';
+  const systems = formData.systems || 'Connected systems';
+
+  const nodeConfigs = {
+    rules:[
+      {id:'n0',stage:'trigger',nodeType:'rule',title:'Trigger',desc:`${trigger}`,input:'External event',output:'Structured data',risk:'Low',human:false},
+      {id:'n1',stage:'observe',nodeType:'rule',title:'Observe & Capture',desc:`Receive and parse ${trigger}. Extract structured fields using predefined schema.`,input:'Raw input',output:'Parsed data record',risk:'Low',human:false},
+      {id:'n2',stage:'interpret',nodeType:'rule',title:'Classify & Route',desc:'Apply rule-based classification. Match against decision table to determine path.',input:'Parsed data',output:'Classification + routing decision',risk:'Low',human:false},
+      {id:'n3',stage:'decide',nodeType:'rule',title:'Decision Engine',desc:'Execute business rules. Deterministic logic tree with defined conditions and outcomes.',input:'Classification',output:'Decision + action plan',risk:'Low',human:false},
+      {id:'n4',stage:'act',nodeType:'rule',title:'Execute Action',desc:`Perform automated action in ${systems}. Update records, send notifications, trigger downstream tasks.`,input:'Decision',output:'Action completed',risk:'Medium',human:false},
+      {id:'n5',stage:'verify',nodeType:'rule',title:'Validate Output',desc:'Check action results against expected state. Confirm SLA and data integrity.',input:'Action result',output:'Validation status',risk:'Low',human:false},
+      {id:'n6',stage:'escalate',nodeType:'human',title:'Exception Escalate',desc:'Flag anomalies for human review. Route to appropriate team with full context.',input:'Anomaly detected',output:'Human review ticket',risk:'High',human:true},
+    ],
+    ai:[
+      {id:'n0',stage:'trigger',nodeType:'rule',title:'Trigger',desc:`${trigger} received. Initial preprocessing and deduplication.`,input:'External event',output:'Preprocessed input',risk:'Low',human:false},
+      {id:'n1',stage:'observe',nodeType:'ai',title:'AI Capture & Parse',desc:'Extract entities, intent, and signals from unstructured input using NLP/ML models.',input:'Unstructured input',output:'Structured signals + metadata',risk:'Medium',human:false},
+      {id:'n2',stage:'interpret',nodeType:'ai',title:'AI Interpretation',desc:'Classify intent, detect sentiment, assess context. Generate confidence score for each interpretation.',input:'Parsed signals',output:'Classification + confidence',risk:'Medium',human:false},
+      {id:'n3',stage:'decide',nodeType:'human',title:'Human Decision (High Risk)',desc:'AI surfaces recommendation with evidence. Human agent reviews and approves/overrides decision.',input:'AI recommendation + evidence',output:'Approved decision',risk:'High',human:true},
+      {id:'n3b',stage:'decide',nodeType:'ai',title:'AI Decision (Low Risk)',desc:'For high-confidence, low-risk cases AI auto-decides. Confidence threshold: >85%.',input:'AI recommendation',output:'Auto-decision',risk:'Low',human:false},
+      {id:'n4',stage:'act',nodeType:'ai',title:'Execute & Notify',desc:`AI orchestrates action across ${systems}. Sends personalized response and updates records.`,input:'Approved decision',output:'Action + notification',risk:'Medium',human:false},
+      {id:'n5',stage:'verify',nodeType:'rule',title:'Quality Check',desc:'Rule-based verification of output quality. Check for policy compliance and data integrity.',input:'Action result',output:'Quality score',risk:'Medium',human:false},
+      {id:'n6',stage:'escalate',nodeType:'human',title:'Human Escalation',desc:'Low-confidence cases escalated to specialist. Full context, AI analysis, and audit trail provided.',input:'Low confidence flag',output:'Specialist review',risk:'High',human:true},
+    ],
+    agentic:[
+      {id:'n0',stage:'trigger',nodeType:'rule',title:'Trigger + Auth Check',desc:`${trigger} received. Identity verification and authorization scope established.`,input:'External event',output:'Authorized task context',risk:'Medium',human:false},
+      {id:'n1',stage:'observe',nodeType:'ai',title:'Agent: Observe',desc:'Agent autonomously gathers additional context — queries APIs, reads docs, retrieves history from connected systems.',input:'Task context',output:'Enriched context object',risk:'Medium',human:false},
+      {id:'n2',stage:'interpret',nodeType:'ai',title:'Agent: Reason & Plan',desc:'Agent builds multi-step action plan. Evaluates options, estimates risk, selects optimal path. Generates plan for guardrail review.',input:'Enriched context',output:'Action plan + risk estimate',risk:'High',human:false},
+      {id:'n2b',stage:'interpret',nodeType:'guard',title:'Guardrail Review',desc:'Policy engine validates plan. Checks scope boundaries, risk thresholds, compliance rules. Blocks out-of-scope actions.',input:'Action plan',output:'Approved/blocked plan',risk:'High',human:false},
+      {id:'n3',stage:'decide',nodeType:'ai',title:'Agent: Autonomous Decision',desc:'Agent executes decision within approved boundaries. Logs every decision with rationale for audit.',input:'Approved plan',output:'Decision log + execution intent',risk:'High',human:false},
+      {id:'n4',stage:'act',nodeType:'ai',title:'Agent: Multi-Step Execution',desc:`Agent autonomously acts across ${systems}. Can chain multiple API calls, send communications, update multiple records.`,input:'Decision',output:'Multi-system actions',risk:'High',human:false},
+      {id:'n5',stage:'verify',nodeType:'guard',title:'Post-Action Audit',desc:'Automated audit of all agent actions. Verifies no scope violations. Generates immutable audit log.',input:'Action results',output:'Audit log + status',risk:'High',human:false},
+      {id:'n6',stage:'escalate',nodeType:'human',title:'Human Override / Review',desc:'Any guardrail breach or confidence drop triggers immediate human review. Agent pauses and waits for instruction.',input:'Guardrail breach / low confidence',output:'Human override decision',risk:'Critical',human:true},
+    ]
+  };
+
+  return nodeConfigs[type] || nodeConfigs.ai;
+}
+
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  view:'hero',
+  assessment:null,
+  nodes:[],
+  selectedNode:null,
+  formData:{},
+  activeLeftTab:'intake',
+  activeRightTab:'inspector',
+  nodeEdits:{},
+  canvasOffset:{x:0,y:0},
+  canvasScale:1,
+};
+
+// ============================================================
+// LAYOUT — positions
+// ============================================================
+function layoutNodes(nodes){
+  // Build a grid layout: stages as columns, parallel nodes stack in same column
+  const stageOrder = ['trigger','observe','interpret','decide','act','verify','escalate'];
+  const colW = 160, colH = 120, padX = 60, padY = 40;
+  const stageCols = {};
+  stageOrder.forEach((s,i)=>{ stageCols[s] = i; });
+
+  const colCounts = {};
+  nodes.forEach(n=>{
+    const col = stageCols[n.stage]||0;
+    colCounts[col] = (colCounts[col]||0)+1;
+  });
+  const colIdx = {};
+  nodes.forEach(n=>{
+    const col = stageCols[n.stage]||0;
+    if(!colIdx[col]) colIdx[col]=0;
+    n._x = padX + col*(colW + 40);
+    n._y = padY + colIdx[col]*(colH + 30);
+    colIdx[col]++;
+  });
+  return nodes;
+}
+
+// ============================================================
+// RENDER CANVAS
+// ============================================================
+function renderCanvas(){
+  const {nodes,selectedNode,nodeEdits} = state;
+  if(!nodes.length) return;
+
+  const svg = document.getElementById('workflow-svg');
+  const edgesG = document.getElementById('edges-group');
+  const nodesG = document.getElementById('nodes-group');
+  edgesG.innerHTML='';
+  nodesG.innerHTML='';
+
+  const W=160,H=90,R=10;
+
+  // Draw edges
+  for(let i=0;i<nodes.length-1;i++){
+    const a=nodes[i], b=nodes[i+1];
+    const ax=a._x+W/2, ay=a._y+H/2;
+    const bx=b._x+W/2, by=b._y+H/2;
+    const isEscalate = b.stage==='escalate';
+    const color = isEscalate ? '#FF5A5F' : '#1F1A17';
+    const markerId = isEscalate ? 'arrowhead-red' : 'arrowhead';
+    const path = `M${ax},${ay+H/2} C${ax},${(ay+H/2+by-H/2)/2} ${bx},${(ay+H/2+by-H/2)/2} ${bx},${by-H/2}`;
+    // If on same row, draw horizontal
+    if(Math.abs(a._y - b._y) < 10){
+      const edge = document.createElementNS('http://www.w3.org/2000/svg','line');
+      edge.setAttribute('x1',a._x+W);edge.setAttribute('y1',a._y+H/2);
+      edge.setAttribute('x2',b._x);edge.setAttribute('y2',b._y+H/2);
+      edge.setAttribute('stroke',color);edge.setAttribute('stroke-width','2');
+      edge.setAttribute('marker-end',`url(#${markerId})`);
+      edgesG.appendChild(edge);
+    } else {
+      // Different column
+      const fromX=a._x+W/2, fromY=a._y+H;
+      const toX=b._x+W/2, toY=b._y;
+      const edge = document.createElementNS('http://www.w3.org/2000/svg','path');
+      edge.setAttribute('d',`M${fromX},${fromY} C${fromX},${fromY+30} ${toX},${toY-30} ${toX},${toY}`);
+      edge.setAttribute('stroke',color);edge.setAttribute('stroke-width','2');
+      edge.setAttribute('fill','none');
+      edge.setAttribute('marker-end',`url(#${markerId})`);
+      edgesG.appendChild(edge);
+    }
+  }
+
+  // Draw nodes
+  nodes.forEach((node,i)=>{
+    const sc = STAGE_COLORS[node.stage]||STAGE_COLORS.observe;
+    const edit = nodeEdits[node.id]||{};
+    const ntKey = edit.nodeType||node.nodeType;
+    const fill = NODE_TYPE_COLORS[ntKey] || sc.fill;
+    const title = edit.title||node.title;
+    const isSelected = selectedNode===node.id;
+
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('class','wf-node'+(isSelected?' selected':''));
+    g.setAttribute('transform',`translate(${node._x},${node._y})`);
+    g.setAttribute('data-node-id',node.id);
+    g.style.cursor='pointer';
+
+    // Shadow
+    const shadow = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    shadow.setAttribute('x','4');shadow.setAttribute('y','4');
+    shadow.setAttribute('width',W);shadow.setAttribute('height',H);
+    shadow.setAttribute('rx',R);shadow.setAttribute('fill','rgba(31,26,23,0.18)');
+    g.appendChild(shadow);
+
+    // Main rect
+    const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('class','node-rect');
+    rect.setAttribute('width',W);rect.setAttribute('height',H);
+    rect.setAttribute('rx',R);
+    rect.setAttribute('fill',fill);
+    rect.setAttribute('stroke',isSelected?'#4C8DFF':sc.stroke);
+    rect.setAttribute('stroke-width',isSelected?'3':'2');
+    g.appendChild(rect);
+
+    // Stage label badge
+    const stageBg = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    stageBg.setAttribute('x','8');stageBg.setAttribute('y','8');
+    stageBg.setAttribute('width','60');stageBg.setAttribute('height','16');
+    stageBg.setAttribute('rx','8');
+    stageBg.setAttribute('fill',sc.fill==='#FFE8E8'?'#FF5A5F':sc.fill==='#FFC233'?'#FFC233':'rgba(31,26,23,0.08)');
+    stageBg.setAttribute('stroke',sc.stroke);stageBg.setAttribute('stroke-width','1');
+    g.appendChild(stageBg);
+
+    const stageText = document.createElementNS('http://www.w3.org/2000/svg','text');
+    stageText.setAttribute('x','38');stageText.setAttribute('y','20');
+    stageText.setAttribute('text-anchor','middle');stageText.setAttribute('font-size','8');
+    stageText.setAttribute('font-weight','800');stageText.setAttribute('font-family','Nunito,sans-serif');
+    stageText.setAttribute('fill',sc.fill==='#FFE8E8'?'white':'#1F1A17');
+    stageText.setAttribute('letter-spacing','0.5');
+    stageText.textContent = sc.label;
+    g.appendChild(stageText);
+
+    // Node type badge
+    const ntBg = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    ntBg.setAttribute('x',W-50);ntBg.setAttribute('y','8');
+    ntBg.setAttribute('width','42');ntBg.setAttribute('height','16');
+    ntBg.setAttribute('rx','8');
+    const ntFills = {rule:'#68C27A',ai:'#4C8DFF',human:'#FFC233',guard:'#FF5A5F'};
+    ntBg.setAttribute('fill',ntFills[ntKey]||'#aaa');
+    ntBg.setAttribute('stroke','#1F1A17');ntBg.setAttribute('stroke-width','1');
+    g.appendChild(ntBg);
+
+    const ntText = document.createElementNS('http://www.w3.org/2000/svg','text');
+    ntText.setAttribute('x',W-29);ntText.setAttribute('y','20');
+    ntText.setAttribute('text-anchor','middle');ntText.setAttribute('font-size','7.5');
+    ntText.setAttribute('font-weight','800');ntText.setAttribute('font-family','Nunito,sans-serif');
+    ntText.setAttribute('fill',ntKey==='human'?'#1F1A17':'white');
+    ntText.textContent = NODE_TYPE_LABELS[ntKey]||'RULE';
+    g.appendChild(ntText);
+
+    // Title
+    const titleEl = document.createElementNS('http://www.w3.org/2000/svg','text');
+    titleEl.setAttribute('x',W/2);titleEl.setAttribute('y','48');
+    titleEl.setAttribute('text-anchor','middle');titleEl.setAttribute('font-size','11');
+    titleEl.setAttribute('font-weight','800');titleEl.setAttribute('font-family','Nunito,sans-serif');
+    titleEl.setAttribute('fill','#1F1A17');
+    // Truncate
+    const t = title.length>18 ? title.slice(0,17)+'…' : title;
+    titleEl.textContent = t;
+    g.appendChild(titleEl);
+
+    // Human review indicator
+    if(node.human || edit.human){
+      const humanEl = document.createElementNS('http://www.w3.org/2000/svg','text');
+      humanEl.setAttribute('x',W/2);humanEl.setAttribute('y','64');
+      humanEl.setAttribute('text-anchor','middle');humanEl.setAttribute('font-size','9');
+      humanEl.setAttribute('font-family','Nunito,sans-serif');
+      humanEl.setAttribute('fill','rgba(31,26,23,0.6)');
+      humanEl.textContent = '👤 Human review required';
+      g.appendChild(humanEl);
+    }
+
+    // Risk dot
+    const riskColors = {Low:'#68C27A',Medium:'#FFC233',High:'#FF8C42',Critical:'#FF5A5F'};
+    const riskKey = edit.risk||node.risk||'Medium';
+    const rdot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    rdot.setAttribute('cx',W-12);rdot.setAttribute('cy',H-12);
+    rdot.setAttribute('r','5');
+    rdot.setAttribute('fill',riskColors[riskKey]||'#aaa');
+    rdot.setAttribute('stroke','#1F1A17');rdot.setAttribute('stroke-width','1.5');
+    g.appendChild(rdot);
+
+    g.addEventListener('click',()=>selectNode(node.id));
+    nodesG.appendChild(g);
+  });
+
+  // Fit canvas: find bounding box
+  if(nodes.length){
+    const minX = Math.min(...nodes.map(n=>n._x));
+    const minY = Math.min(...nodes.map(n=>n._y));
+    const maxX = Math.max(...nodes.map(n=>n._x)) + W;
+    const maxY = Math.max(...nodes.map(n=>n._y)) + H;
+    const pad=60;
+    svg.setAttribute('viewBox',`${minX-pad} ${minY-pad} ${maxX-minX+pad*2} ${maxY-minY+pad*2}`);
+  }
+}
+
+// ============================================================
+// SELECT NODE
+// ============================================================
+function selectNode(id){
+  state.selectedNode = id;
+  renderCanvas();
+  showNodeInspector(id);
+  // Switch to inspector tab
+  switchRightTab('inspector');
+}
+
+function showNodeInspector(id){
+  const node = state.nodes.find(n=>n.id===id);
+  if(!node) return;
+  const edit = state.nodeEdits[id]||{};
+  const title = edit.title||node.title;
+  const desc = edit.desc||node.desc;
+  const nt = edit.nodeType||node.nodeType;
+  const risk = edit.risk||node.risk;
+  const notes = edit.notes||'';
+  const human = edit.human!==undefined ? edit.human : node.human;
+
+  const sc = STAGE_COLORS[node.stage]||STAGE_COLORS.observe;
+  const ntColors = {rule:'badge-green',ai:'badge-blue',human:'badge-yellow',guard:'badge-red'};
+
+  document.getElementById('tab-inspector').innerHTML = `
+    <div class="fade-in">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+        <span class="badge ${ntColors[nt]||'badge-gray'}" style="font-size:9px">${NODE_TYPE_LABELS[nt]||nt.toUpperCase()}</span>
+        <span class="badge badge-gray" style="font-size:9px">${sc.label}</span>
+        <span style="margin-left:auto;font-size:11px;color:rgba(31,26,23,0.5)">ID: ${node.id}</span>
+      </div>
+
+      <div class="form-group">
+        <label>Stage Title</label>
+        <input type="text" value="${title}" id="edit-title" />
+      </div>
+
+      <div class="form-group">
+        <label>Node Type</label>
+        <div class="toggle-group">
+          <div class="toggle-opt ${nt==='rule'?'active':''}" data-nt="rule" onclick="setNodeType('${id}','rule')">RULE</div>
+          <div class="toggle-opt ${nt==='ai'?'active':''}" data-nt="ai" onclick="setNodeType('${id}','ai')">AI</div>
+          <div class="toggle-opt ${nt==='human'?'active':''}" data-nt="human" onclick="setNodeType('${id}','human')">HUMAN</div>
+          <div class="toggle-opt ${nt==='guard'?'active':''}" data-nt="guard" onclick="setNodeType('${id}','guard')">GUARD</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="edit-desc" rows="3">${desc}</textarea>
+      </div>
+
+      <div class="section-label" style="margin-top:12px">Details</div>
+      <div style="background:var(--beige);border-radius:8px;padding:10px;font-size:11px;line-height:1.8;margin-bottom:10px">
+        <strong>Input:</strong> ${node.input}<br>
+        <strong>Output:</strong> ${node.output}
+      </div>
+
+      <div class="form-group">
+        <label>Risk Level</label>
+        <select id="edit-risk" onchange="saveNodeEdit('${id}')">
+          ${['Low','Medium','High','Critical'].map(r=>`<option value="${r}" ${risk===r?'selected':''}>${r}</option>`).join('')}
+        </select>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+        <input type="checkbox" id="edit-human" ${human?'checked':''} style="width:auto" onchange="saveNodeEdit('${id}')">
+        <label for="edit-human" style="margin:0;text-transform:none;font-size:12px;font-weight:700">Requires human review</label>
+      </div>
+
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="edit-notes" rows="2" placeholder="Add implementation notes...">${notes}</textarea>
+      </div>
+
+      <button class="btn btn-yellow" style="width:100%;margin-top:4px" onclick="saveNodeEdit('${id}')">💾 Save Changes</button>
+    </div>
+  `;
+}
+
+function setNodeType(id,nt){
+  if(!state.nodeEdits[id]) state.nodeEdits[id]={};
+  state.nodeEdits[id].nodeType = nt;
+  saveNodeEdit(id);
+}
+
+function saveNodeEdit(id){
+  const titleEl = document.getElementById('edit-title');
+  const descEl = document.getElementById('edit-desc');
+  const riskEl = document.getElementById('edit-risk');
+  const humanEl = document.getElementById('edit-human');
+  const notesEl = document.getElementById('edit-notes');
+  if(!state.nodeEdits[id]) state.nodeEdits[id]={};
+  if(titleEl) state.nodeEdits[id].title = titleEl.value;
+  if(descEl) state.nodeEdits[id].desc = descEl.value;
+  if(riskEl) state.nodeEdits[id].risk = riskEl.value;
+  if(humanEl) state.nodeEdits[id].human = humanEl.checked;
+  if(notesEl) state.nodeEdits[id].notes = notesEl.value;
+  renderCanvas();
+  // re-render inspector to update toggles
+  showNodeInspector(id);
+}
+
+// ============================================================
+// ASSESSMENT PANEL
+// ============================================================
+function renderAssessment(){
+  const {assessment} = state;
+  if(!assessment) return;
+  const {type,label,color,confidence,dims} = assessment;
+
+  const typeEmoji = {rules:'⚙️',ai:'🤖',agentic:'🚀'}[type];
+  const typeBadge = {rules:'badge-green',ai:'badge-blue',agentic:'badge-red'}[type];
+
+  const whyMap = {
+    rules:'Your process has high clarity, structured inputs, and low ambiguity. Rule engines will handle this reliably without AI overhead.',
+    ai:'Your process involves some unstructured inputs or interpretation gaps where AI models can bridge the gap — but humans should stay in the loop for critical decisions.',
+    agentic:'Your process requires dynamic multi-step decision-making where controlled autonomy delivers clear value. Guardrails and human override are essential.'
+  };
+
+  const humanFocusMap = {
+    rules:'Exception cases and high-risk edge conditions only.',
+    ai:'All decisions above medium risk. AI surfaces options, human approves.',
+    agentic:'Override triggers, guardrail breaches, and any novel situation the agent hasn\'t seen.'
+  };
+
+  document.getElementById('assess-content').innerHTML = `
+    <div class="fade-in">
+      <div class="panel panel-${type==='rules'?'green':type==='ai'?'blue':'red'}" style="padding:14px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;opacity:0.7;margin-bottom:4px">Recommendation</div>
+        <div style="font-family:var(--font-comic);font-size:1.4rem;display:flex;align-items:center;gap:8px">${typeEmoji} ${label}</div>
+        <div style="font-size:11px;margin-top:6px;font-weight:700;opacity:0.8">Confidence: ${confidence}%</div>
+        <div style="background:rgba(255,255,255,0.5);border-radius:20px;border:1.5px solid var(--ink);height:8px;margin-top:6px;overflow:hidden">
+          <div style="height:100%;width:${confidence}%;background:var(--ink);border-radius:20px;transition:width 0.5s"></div>
+        </div>
+      </div>
+
+      <div style="font-size:12px;line-height:1.6;font-weight:600;margin-bottom:12px;padding:10px;background:var(--beige);border-radius:8px;border:1.5px dashed var(--ink)">
+        ${whyMap[type]}
+      </div>
+
+      <div class="section-label">Score Breakdown</div>
+      ${dims.map(d=>`
+        <div style="margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;margin-bottom:2px">
+            <span>${d.name}</span>
+            <span>${d.score}/${d.max}</span>
+          </div>
+          <div class="score-bar">
+            <div class="score-fill" style="width:${(d.score/d.max)*100}%;background:${d.score/d.max>0.6?'#68C27A':d.score/d.max>0.3?'#FFC233':'#FF5A5F'}"></div>
+          </div>
+        </div>
+      `).join('')}
+
+      <div class="mini-rule"></div>
+      <div class="section-label">Human Review Focus</div>
+      <div style="font-size:11px;font-weight:700;padding:8px;background:var(--yellow);border:1.5px solid var(--ink);border-radius:8px">
+        ${humanFocusMap[type]}
+      </div>
+    </div>
+  `;
+}
+
+// ============================================================
+// SUMMARY PANEL
+// ============================================================
+function renderSummary(){
+  const {assessment,formData,nodes,nodeEdits} = state;
+  if(!assessment) return;
+  const {type,label,color} = assessment;
+
+  const escalateNodes = nodes.filter(n=>n.stage==='escalate');
+  const humanNodes = nodes.filter(n=>{
+    const e=nodeEdits[n.id]||{};
+    return (e.human!==undefined?e.human:n.human);
+  });
+  const aiNodes = nodes.filter(n=>{
+    const e=nodeEdits[n.id]||{};
+    return (e.nodeType||n.nodeType)==='ai';
+  });
+
+  const implNotes = {
+    rules:'Start with a BPM tool (Zapier, Make) or custom rule engine. Document all decision tables. Add monitoring for exception rates.',
+    ai:'Choose pre-trained models where possible (GPT, Claude, PaLM). Build confidence thresholds early. Instrument every AI decision for review.',
+    agentic:'Use an orchestration framework (LangGraph, AutoGen). Define agent boundaries strictly. Build a kill-switch and human override at each stage.'
+  }[type];
+
+  document.getElementById('summary-content').innerHTML = `
+    <div class="fade-in">
+      <div class="badge ${type==='rules'?'badge-green':type==='ai'?'badge-blue':'badge-red'}" style="margin-bottom:10px">${label}</div>
+      <div style="font-family:var(--font-comic);font-size:1.1rem;margin-bottom:10px">${formData.name||'Your Workflow'}</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        <div style="background:var(--beige);border-radius:8px;padding:8px;text-align:center">
+          <div style="font-size:1.4rem;font-weight:800">${nodes.length}</div>
+          <div style="font-size:10px;text-transform:uppercase;font-weight:700;opacity:0.7">Total Stages</div>
+        </div>
+        <div style="background:var(--beige);border-radius:8px;padding:8px;text-align:center">
+          <div style="font-size:1.4rem;font-weight:800">${humanNodes.length}</div>
+          <div style="font-size:10px;text-transform:uppercase;font-weight:700;opacity:0.7">Human Review</div>
+        </div>
+        <div style="background:var(--beige);border-radius:8px;padding:8px;text-align:center">
+          <div style="font-size:1.4rem;font-weight:800">${aiNodes.length}</div>
+          <div style="font-size:10px;text-transform:uppercase;font-weight:700;opacity:0.7">AI Stages</div>
+        </div>
+        <div style="background:var(--beige);border-radius:8px;padding:8px;text-align:center">
+          <div style="font-size:1.4rem;font-weight:800">${escalateNodes.length}</div>
+          <div style="font-size:10px;text-transform:uppercase;font-weight:700;opacity:0.7">Escalate Paths</div>
+        </div>
+      </div>
+
+      <div class="section-label">Escalation Triggers</div>
+      <div style="font-size:11px;font-weight:600;padding:8px;border:1.5px solid #FF5A5F;border-radius:8px;background:#FFE8E8;margin-bottom:10px;line-height:1.6">
+        ${type==='rules'?'• Exception not matching any rule branch<br>• Data integrity validation failure<br>• SLA threshold exceeded':
+          type==='ai'?'• AI confidence below threshold<br>• Novel input pattern detected<br>• Risk score exceeds policy limit<br>• Conflicting classification signals':
+          '• Guardrail boundary breach<br>• Agent confidence collapse<br>• Out-of-scope action attempted<br>• Audit anomaly detected<br>• Human override requested'}
+      </div>
+
+      <div class="section-label">Confidence Thresholds</div>
+      <div style="font-size:11px;font-weight:600;padding:8px;background:var(--beige);border-radius:8px;margin-bottom:10px;line-height:1.6">
+        ${type==='rules'?'N/A — deterministic rules, binary outcome':
+          type==='ai'?'Auto-decide: >85% confidence<br>Human review: 60-85%<br>Escalate: <60%':
+          'Auto-execute: >90% + in-scope<br>Human review: 70-90%<br>Pause & escalate: <70%'}
+      </div>
+
+      <div class="section-label">Implementation Notes</div>
+      <div style="font-size:11px;font-weight:600;padding:8px;background:var(--surface);border:1.5px dashed var(--ink);border-radius:8px;line-height:1.6">
+        ${implNotes}
+      </div>
+
+      <div class="mini-rule"></div>
+      <div class="section-label">Export</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <button class="btn btn-sm" style="width:100%;justify-content:center" id="btn-export-md-2">↓ Markdown Summary</button>
+        <button class="btn btn-sm btn-green" style="width:100%;justify-content:center" id="btn-export-json-2">{ } JSON Definition</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('btn-export-md-2')?.addEventListener('click',exportMarkdown);
+  document.getElementById('btn-export-json-2')?.addEventListener('click',exportJSON);
+}
+
+// ============================================================
+// ANALYZE & GENERATE
+// ============================================================
+function analyze(){
+  const fd = {
+    name: document.getElementById('f-name').value,
+    today: document.getElementById('f-today').value,
+    trigger: document.getElementById('f-trigger').value,
+    structured: document.getElementById('f-structured').value,
+    clarity: document.getElementById('f-clarity').value,
+    exceptions: document.getElementById('f-exceptions').value,
+    risk: document.getElementById('f-risk').value,
+    complexity: document.getElementById('f-complexity').value,
+    human: document.getElementById('f-human').value,
+    autonomy: document.getElementById('f-autonomy').value,
+    systems: document.getElementById('f-systems').value,
+  };
+  state.formData = fd;
+  state.assessment = scoreWorkflow(fd);
+  state.nodeEdits = {};
+
+  const rawNodes = generateNodes(state.assessment, fd);
+  state.nodes = layoutNodes(rawNodes.map(n=>({...n})));
+  state.selectedNode = null;
+
+  // Show main app
+  showMainApp();
+  renderCanvas();
+  renderAssessment();
+  renderSummary();
+
+  // Switch to assess tab
+  switchLeftTab('assess');
+}
+
+function showMainApp(){
+  document.getElementById('hero-section').style.display='none';
+  document.getElementById('main-app').style.display='grid';
+  document.getElementById('canvas-empty').style.display='none';
+  document.getElementById('canvas-main').style.display='block';
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function switchLeftTab(tab){
+  state.activeLeftTab = tab;
+  document.querySelectorAll('.tab[data-tab]').forEach(t=>{
+    if(t.closest('#left-sidebar')){
+      t.classList.toggle('active', t.dataset.tab===tab);
+    }
+  });
+  ['intake','assess','examples'].forEach(t=>{
+    const el = document.getElementById(`tab-${t}`);
+    if(el) el.style.display = t===tab?'block':'none';
+  });
+}
+
+function switchRightTab(tab){
+  state.activeRightTab = tab;
+  document.querySelectorAll('#right-panel .tab').forEach(t=>{
+    t.classList.toggle('active', t.dataset.tab===tab);
+  });
+  document.getElementById('tab-inspector').style.display = tab==='inspector'?'block':'none';
+  document.getElementById('tab-summary').style.display = tab==='summary'?'block':'none';
+}
+
+// ============================================================
+// EXAMPLES
+// ============================================================
+function renderExamples(){
+  const el = document.getElementById('examples-list');
+  el.innerHTML = EXAMPLES.map(ex=>`
+    <div class="type-card" style="margin-bottom:10px" onclick="loadExample('${ex.id}')">
+      <div style="font-size:1.2rem;margin-bottom:4px">${ex.emoji} <strong style="font-family:var(--font-comic)">${ex.label}</strong></div>
+      <div style="font-size:11px;color:rgba(31,26,23,0.6);font-weight:600">${ex.data.trigger}</div>
+    </div>
+  `).join('');
+}
+
+function loadExample(id){
+  const ex = EXAMPLES.find(e=>e.id===id);
+  if(!ex) return;
+  const d = ex.data;
+  document.getElementById('f-name').value = d.name||'';
+  document.getElementById('f-today').value = d.today||'';
+  document.getElementById('f-trigger').value = d.trigger||'';
+  document.getElementById('f-structured').value = d.structured||'1';
+  document.getElementById('f-clarity').value = d.clarity||'1';
+  document.getElementById('f-exceptions').value = d.exceptions||'1';
+  document.getElementById('f-risk').value = d.risk||'2';
+  document.getElementById('f-complexity').value = d.complexity||'1';
+  document.getElementById('f-human').value = d.human||'1';
+  document.getElementById('f-autonomy').value = d.autonomy||'1';
+  document.getElementById('f-systems').value = d.systems||'';
+  analyze();
+}
+
+// ============================================================
+// EXPORT
+// ============================================================
+function exportMarkdown(){
+  const {assessment,formData,nodes,nodeEdits} = state;
+  if(!assessment) return;
+  const lines = [
+    `# AI Automation Workflow: ${formData.name||'Untitled'}`,
+    ``,
+    `## Recommendation: ${assessment.label}`,
+    `**Confidence:** ${assessment.confidence}%`,
+    ``,
+    `## Workflow Overview`,
+    `**Trigger:** ${formData.trigger||'—'}`,
+    `**Systems:** ${formData.systems||'—'}`,
+    ``,
+    `## Stages`,
+    ...nodes.map(n=>{
+      const e=nodeEdits[n.id]||{};
+      return `### ${e.title||n.title} (${(e.nodeType||n.nodeType).toUpperCase()})\n- **Stage:** ${n.stage}\n- **Input:** ${n.input}\n- **Output:** ${n.output}\n- **Risk:** ${e.risk||n.risk}\n- **Human Review:** ${(e.human!==undefined?e.human:n.human)?'Yes':'No'}\n- **Notes:** ${e.notes||'—'}`;
+    }),
+    ``,
+    `## Assessment Scores`,
+    ...assessment.dims.map(d=>`- **${d.name}:** ${d.score}/${d.max}`),
+    ``,
+    `---`,
+    `_Generated by AI Automation Workflow Designer_`
+  ];
+  const md = lines.join('\n');
+  const blob = new Blob([md],{type:'text/markdown'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=`${(formData.name||'workflow').replace(/\s+/g,'-').toLowerCase()}.md`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportJSON(){
+  const {assessment,formData,nodes,nodeEdits} = state;
+  const data = {
+    meta:{name:formData.name,recommendation:assessment?.label,confidence:assessment?.confidence,generated:new Date().toISOString()},
+    formData,
+    assessment:{type:assessment?.type,label:assessment?.label,confidence:assessment?.confidence,scores:assessment?.dims},
+    nodes:nodes.map(n=>{const e=nodeEdits[n.id]||{};return{...n,...e}})
+  };
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=`${(formData.name||'workflow').replace(/\s+/g,'-').toLowerCase()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ============================================================
+// RESET
+// ============================================================
+function resetApp(){
+  state = {view:'hero',assessment:null,nodes:[],selectedNode:null,formData:{},activeLeftTab:'intake',activeRightTab:'inspector',nodeEdits:{},canvasOffset:{x:0,y:0},canvasScale:1};
+  document.getElementById('hero-section').style.display='block';
+  document.getElementById('main-app').style.display='none';
+  document.getElementById('f-name').value='';
+  document.getElementById('f-today').value='';
+  document.getElementById('f-trigger').value='';
+  document.getElementById('f-systems').value='';
+}
+
+// ============================================================
+// EVENT LISTENERS
+// ============================================================
+document.getElementById('btn-start').addEventListener('click',()=>{
+  document.getElementById('hero-section').style.display='none';
+  document.getElementById('main-app').style.display='grid';
+  // Show empty canvas state
+  document.getElementById('canvas-empty').style.display='flex';
+  document.getElementById('canvas-main').style.display='none';
+});
+
+document.getElementById('btn-analyze').addEventListener('click',analyze);
+document.getElementById('btn-reset').addEventListener('click',resetApp);
+document.getElementById('btn-export-md').addEventListener('click',exportMarkdown);
+document.getElementById('btn-regen')?.addEventListener('click',()=>{
+  if(state.formData) analyze();
+});
+document.getElementById('btn-export-json')?.addEventListener('click',exportJSON);
+
+// Left sidebar tabs
+document.querySelectorAll('#left-sidebar .tab').forEach(tab=>{
+  tab.addEventListener('click',()=>switchLeftTab(tab.dataset.tab));
+});
+
+// Right panel tabs
+document.querySelectorAll('#right-panel .tab').forEach(tab=>{
+  tab.addEventListener('click',()=>switchRightTab(tab.dataset.tab));
+});
+
+// Regen after canvas loads
+document.getElementById('btn-regen').addEventListener('click',()=>{
+  if(Object.keys(state.formData).length>0){ analyze(); }
+});
+
+// ============================================================
+// INIT
+// ============================================================
+renderExamples();
+
+// Load from localStorage if exists
+try{
+  const saved = localStorage.getItem('aiwd_state');
+  if(saved){
+    const s = JSON.parse(saved);
+    if(s.formData && s.assessment){
+      state.formData = s.formData;
+      state.assessment = s.assessment;
+      state.nodeEdits = s.nodeEdits||{};
+      // Restore form
+      Object.entries(s.formData).forEach(([k,v])=>{
+        const el = document.getElementById('f-'+k);
+        if(el) el.value=v;
+      });
+      const rawNodes = generateNodes(state.assessment, state.formData);
+      state.nodes = layoutNodes(rawNodes.map(n=>({...n})));
+      showMainApp();
+      renderCanvas();
+      renderAssessment();
+      renderSummary();
+      switchLeftTab('assess');
+    }
+  }
+}catch(e){}
+
+// Autosave
+setInterval(()=>{
+  try{
+    if(state.assessment){
+      localStorage.setItem('aiwd_state',JSON.stringify({formData:state.formData,assessment:state.assessment,nodeEdits:state.nodeEdits}));
+    }
+  }catch(e){}
+},3000);
+
+// Resize canvas viewbox on window resize
+window.addEventListener('resize',()=>{
+  if(state.nodes.length) renderCanvas();
+});
+</script>
+</body>
+</html>
