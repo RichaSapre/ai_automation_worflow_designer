@@ -72,11 +72,12 @@
   .main-layout{display:grid;grid-template-columns:340px 1fr 300px;gap:0;height:calc(100vh - 60px);overflow:hidden}
 
   /* HERO */
-  #hero{padding:clamp(1rem,3vw,2.5rem);position:relative}
-  .hero-inner{max-width:1200px;margin:0 auto}
-  .type-card{border:var(--border);border-radius:10px;padding:12px;background:white;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.15s}
-  .type-card:hover{transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--ink)}
-  .type-card.active-card{transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--ink)}
+  #hero-section{padding:clamp(2rem,6vw,5rem) 24px;position:relative;min-height:90vh;display:flex;align-items:center;justify-content:center}
+  .hero-inner{max-width:1100px;margin:0 auto;width:100%}
+  .type-card{border:var(--border);border-radius:12px;padding:24px;background:white;box-shadow:var(--shadow-sm);cursor:pointer;transition:all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);flex:1;min-width:240px;display:flex;flex-direction:column;justify-content:space-between;min-height:220px}
+  .type-card:hover{transform:translate(-4px,-4px);box-shadow:8px 8px 0 var(--ink)}
+  .type-card.active-card{transform:translate(-4px,-4px);box-shadow:8px 8px 0 var(--ink);border-color:var(--blue)}
+
 
   /* SIDEBAR */
   .sidebar{border-right:var(--border);overflow-y:auto;background:var(--surface)}
@@ -182,46 +183,72 @@
 </nav>
 
 <!-- HERO (shown before assessment) -->
-<div id="hero-section" class="halftone" style="padding:24px;display:block">
-  <div style="max-width:900px;margin:0 auto">
-    <div style="display:flex;align-items:flex-start;gap:24px;flex-wrap:wrap;margin-bottom:24px">
-      <div style="flex:1;min-width:280px">
-        <div class="badge badge-yellow" style="margin-bottom:12px">Issue #001 — Workflow Intelligence</div>
-        <h1 style="margin-bottom:10px">NOT EVERY<br>PROBLEM<br>NEEDS AI.</h1>
-        <p style="font-size:14px;max-width:420px;line-height:1.6;font-weight:600;margin-bottom:16px">Design smarter automation by first asking: <em>do you actually need AI?</em> This tool helps you classify your workflow and generate an interactive visual design.</p>
-        <div class="highlight-box" style="max-width:440px">
+<div id="hero-section" class="halftone">
+  <div class="hero-inner">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:48px;margin-bottom:60px;align-items:center">
+      
+      <div class="hero-text-area">
+        <div class="badge badge-yellow" style="margin-bottom:16px;padding:6px 12px;font-size:12px">Issue #001: Workflow Intelligence</div>
+        <h1 style="margin-bottom:20px;letter-spacing:-1px">NOT EVERY<br>PROBLEM<br><span style="color:var(--red)">NEEDS AI.</span></h1>
+        <p style="font-size:16px;max-width:480px;line-height:1.7;font-weight:600;margin-bottom:24px;color:rgba(31,26,23,0.8)">
+          Design smarter automation by first asking: <em>do you actually need AI?</em> 
+          This tool helps you classify your workflow and generate an interactive visual design.
+        </p>
+        <div class="highlight-box" style="max-width:480px;line-height:1.6;font-style:italic;background:#fff;border-left:8px solid var(--yellow)">
           "Automate with rules first. Add AI where interpretation creates bottlenecks. Add agency only where autonomy creates clear value."
         </div>
       </div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start">
+
+      <div style="display:grid;grid-template-columns:1fr;gap:20px">
         <!-- 3 Type Cards -->
-        <div class="type-card" style="width:170px">
-          <div class="badge badge-green" style="margin-bottom:8px;font-size:9px">Level 1</div>
-          <div style="font-family:var(--font-comic);font-size:1.1rem;margin-bottom:6px">Rules-Based</div>
-          <p style="font-size:11px;line-height:1.5;color:rgba(31,26,23,0.7)">Structured, repetitive, deterministic. If-then logic. Fast, predictable, no AI needed.</p>
-          <div style="margin-top:8px;font-size:10px;font-weight:700;color:#3B6D11">✓ Low cost &nbsp;✓ Auditable</div>
-        </div>
-        <div class="type-card" style="width:170px">
-          <div class="badge badge-blue" style="margin-bottom:8px;font-size:9px">Level 2</div>
-          <div style="font-family:var(--font-comic);font-size:1.1rem;margin-bottom:6px">AI-Assisted</div>
-          <p style="font-size:11px;line-height:1.5;color:rgba(31,26,23,0.7)">Ambiguous inputs, interpretation needed. AI recommends, humans decide on critical steps.</p>
-          <div style="margin-top:8px;font-size:10px;font-weight:700;color:#185FA5">✓ Flexible &nbsp;✓ Human-in-loop</div>
-        </div>
-        <div class="type-card" style="width:170px">
-          <div class="badge badge-red" style="margin-bottom:8px;font-size:9px">Level 3</div>
-          <div style="font-family:var(--font-comic);font-size:1.1rem;margin-bottom:6px">Agentic</div>
-          <p style="font-size:11px;line-height:1.5;color:rgba(31,26,23,0.7)">Dynamic decisions, multi-step autonomy with guardrails. Use only when autonomy creates clear value.</p>
-          <div style="margin-top:8px;font-size:10px;font-weight:700;color:#A32D2D">⚠ High risk &nbsp;⚠ Audit required</div>
+        <div style="display:flex;gap:20px;flex-wrap:wrap">
+          <div class="type-card">
+            <div>
+              <div class="badge badge-green" style="margin-bottom:12px">Level 1</div>
+              <div style="font-family:var(--font-comic);font-size:1.4rem;margin-bottom:10px">Rules-Based</div>
+              <p style="font-size:13px;line-height:1.6;color:rgba(31,26,23,0.7);margin-bottom:16px">Structured, repetitive, deterministic. If-then logic. Fast, predictable, no AI needed.</p>
+            </div>
+            <div style="font-size:11px;font-weight:800;color:#3B6D11;display:flex;gap:12px">
+              <span>✓ Low cost</span>
+              <span>✓ Auditable</span>
+            </div>
+          </div>
+          
+          <div class="type-card">
+            <div>
+              <div class="badge badge-blue" style="margin-bottom:12px">Level 2</div>
+              <div style="font-family:var(--font-comic);font-size:1.4rem;margin-bottom:10px">AI-Assisted</div>
+              <p style="font-size:13px;line-height:1.6;color:rgba(31,26,23,0.7);margin-bottom:16px">Ambiguous inputs, interpretation needed. AI recommends, humans decide on critical steps.</p>
+            </div>
+            <div style="font-size:11px;font-weight:800;color:#185FA5;display:flex;gap:12px">
+              <span>✓ Flexible</span>
+              <span>✓ Human-in-loop</span>
+            </div>
+          </div>
+
+          <div class="type-card">
+            <div>
+              <div class="badge badge-red" style="margin-bottom:12px">Level 3</div>
+              <div style="font-family:var(--font-comic);font-size:1.4rem;margin-bottom:10px">Agentic</div>
+              <p style="font-size:13px;line-height:1.6;color:rgba(31,26,23,0.7);margin-bottom:16px">Dynamic decisions, multi-step autonomy with guardrails. Use only when autonomy creates clear value.</p>
+            </div>
+            <div style="font-size:11px;font-weight:800;color:#A32D2D;display:flex;gap:12px">
+              <span>⚠ High risk</span>
+              <span>⚠ Audit required</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <div style="text-align:center">
-      <button class="btn btn-yellow" id="btn-start" style="font-size:16px;padding:14px 32px">
+    
+    <div style="text-align:center;padding-top:20px border-top:2px dashed rgba(31,26,23,0.1)">
+      <button class="btn btn-yellow" id="btn-start" style="font-size:18px;padding:18px 48px;border-radius:12px">
         ⚡ START DESIGNING YOUR WORKFLOW
       </button>
     </div>
   </div>
 </div>
+
 
 <!-- MAIN APP (3-column) -->
 <div id="main-app" class="main-layout" style="display:none">
@@ -253,19 +280,19 @@
       <div class="form-group">
         <label>Is the input structured?</label>
         <select id="f-structured">
-          <option value="3">Fully structured (forms, databases, APIs)</option>
+          <option value="3">Fully structured: forms, databases, APIs</option>
           <option value="2">Mostly structured with some variation</option>
-          <option value="1">Mixed — structured + unstructured</option>
-          <option value="0">Mostly unstructured (emails, docs, voice)</option>
+          <option value="1">Mixed: structured + unstructured</option>
+          <option value="0">Mostly unstructured: emails, docs, voice</option>
         </select>
       </div>
       <div class="form-group">
         <label>Process Clarity</label>
         <select id="f-clarity">
-          <option value="3">Crystal clear — exact rules exist</option>
+          <option value="3">Crystal clear: exact rules exist</option>
           <option value="2">Clear most of the time</option>
-          <option value="1">Some ambiguity / judgment calls</option>
-          <option value="0">High ambiguity — depends on context</option>
+          <option value="1">Some ambiguity: judgment calls</option>
+          <option value="0">High ambiguity: depends on context</option>
         </select>
       </div>
       <div class="form-group">
@@ -280,37 +307,37 @@
       <div class="form-group">
         <label>Risk if Wrong</label>
         <select id="f-risk">
-          <option value="0">Critical — financial, legal, safety</option>
-          <option value="1">High — significant business impact</option>
-          <option value="2">Medium — recoverable error</option>
-          <option value="3">Low — easily corrected</option>
+          <option value="0">Critical: financial, legal, safety</option>
+          <option value="1">High: significant business impact</option>
+          <option value="2">Medium: recoverable error</option>
+          <option value="3">Low: easily corrected</option>
         </select>
       </div>
       <div class="form-group">
         <label>Decision Complexity</label>
         <select id="f-complexity">
-          <option value="3">Simple — binary or rule-lookup</option>
-          <option value="2">Moderate — some conditions</option>
-          <option value="1">Complex — multiple variables</option>
-          <option value="0">Very complex — expert judgment</option>
+          <option value="3">Simple: binary or rule-lookup</option>
+          <option value="2">Moderate: some conditions</option>
+          <option value="1">Complex: multiple variables</option>
+          <option value="0">Very complex: expert judgment</option>
         </select>
       </div>
       <div class="form-group">
         <label>Human Review Currently Required?</label>
         <select id="f-human">
-          <option value="0">Always — every case reviewed</option>
-          <option value="1">Often — most cases</option>
-          <option value="2">Sometimes — edge cases only</option>
-          <option value="3">Rarely — mainly for exceptions</option>
+          <option value="0">Always: every case reviewed</option>
+          <option value="1">Often: most cases</option>
+          <option value="2">Sometimes: edge cases only</option>
+          <option value="3">Rarely: mainly for exceptions</option>
         </select>
       </div>
       <div class="form-group">
         <label>Autonomy Value</label>
         <select id="f-autonomy">
-          <option value="0">High — fully autonomous actions needed</option>
-          <option value="1">Medium — some autonomous steps useful</option>
-          <option value="2">Low — prefer human confirmation</option>
-          <option value="3">None — no autonomous action wanted</option>
+          <option value="0">High: fully autonomous actions needed</option>
+          <option value="1">Medium: some autonomous steps useful</option>
+          <option value="2">Low: prefer human confirmation</option>
+          <option value="3">None: no autonomous action wanted</option>
         </select>
       </div>
       <div class="form-group">
